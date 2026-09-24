@@ -117,6 +117,8 @@ function draw(ctx, game, layout, uiState) {
     ctx.font = `${Math.floor(cell * 0.42)}px sans-serif`;
     ctx.fillText(uiState.toast.text, layout.w / 2, layout.h - layout.panelH - cell * 0.4);
   }
+
+  require('./ui').drawPanel(ctx, layout, uiState, game, game.config);
 }
 
 module.exports = { computeLayout, cellToPixel, pixelToCell, draw };
