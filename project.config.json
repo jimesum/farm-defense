@@ -1,0 +1,11 @@
+{
+  "description": "农场保卫战",
+  "appid": "touristappid",
+  "compileType": "game",
+  "libVersion": "latest",
+  "projectname": "farm-defense",
+  "setting": {
+    "es6": true,
+    "minified": true
+  }
+}
