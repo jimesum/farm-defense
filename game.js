@@ -62,7 +62,9 @@ function loop() {
   const now = Date.now();
   const dt = Math.min((now - last) / 1000, 0.05);
   last = now;
-  game.update(dt);
+  if (!uiState.adModal) {
+    game.update(dt);
+  }
   // 广告触发：血量告急或 Boss 波前
   if (game.adPrompt && !uiState.adModal) {
     uiState.adModal = true;
