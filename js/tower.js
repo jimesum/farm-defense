@@ -35,8 +35,7 @@ function applyUpgrade(tower, config) {
 }
 
 function sellValue(tower, config) {
-  // 1e-9 avoids 90 * 0.7 === 62.999… in IEEE doubles
-  return Math.floor(tower.invested * config.SELL_REFUND_RATE + 1e-9);
+  return Math.round(tower.invested * config.SELL_REFUND_RATE);
 }
 
 function inRange(tower, range, pos) {
