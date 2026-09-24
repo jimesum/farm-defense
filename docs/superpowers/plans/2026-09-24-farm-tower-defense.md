@@ -626,11 +626,11 @@ test('inRange uses cell-center distance', () => {
 test('scarecrow attacks furthest enemy in range, respects fireRate', () => {
   _resetIds();
   const path = buildPath(config.PATH_WAYPOINTS);
-  const t = createTower('scarecrow', 3, 1, config); // range 2, covers row 2 path
+  const t = createTower('scarecrow', 3, 2, config); // range 2, center on the row-2 path
   const near = createEnemy('aphid', config);
-  near.distance = 2.0; // pos (1.5, 2.5)
+  near.distance = 3.0; // pos (2.5, 2.5), 1 cell from tower
   const far = createEnemy('aphid', config);
-  far.distance = 5.0;  // pos (4.5, 2.5)
+  far.distance = 5.0;  // pos (4.5, 2.5), 1 cell from tower, further along the path
   const events = updateTower(t, [near, far], 0.1, config, path);
   assert.strictEqual(events.length, 1);
   assert.strictEqual(events[0].enemyId, far.id);
@@ -644,15 +644,13 @@ test('scarecrow attacks furthest enemy in range, respects fireRate', () => {
 test('windmill hits all enemies in range', () => {
   _resetIds();
   const path = buildPath(config.PATH_WAYPOINTS);
-  const t = createTower('windmill', 3, 1, config); // range 1
+  const t = createTower('windmill', 3, 2, config); // range 1, center (3.5, 2.5) on the path
   const a = createEnemy('aphid', config);
-  a.distance = 3.0; // (2.5, 2.5) distance to (3.5,1.5) = sqrt(2) ≈ 1.41 > 1，不在范围
-  a.distance = 3.5; // (3.0, 2.5) -> dx 0.5 dy 1.0 -> 1.12 > 1，仍不在
-  a.distance = 4.0; // (3.5, 2.5) -> dy 1.0，在范围内
+  a.distance = 3.5; // (3.0, 2.5), 0.5 cells away
   const b = createEnemy('aphid', config);
-  b.distance = 4.4; // (3.9, 2.5) -> 在范围内
+  b.distance = 4.5; // (4.0, 2.5), 0.5 cells away
   const c = createEnemy('aphid', config);
-  c.distance = 10.0; // 第二段竖路上，远离
+  c.distance = 10.0; // vertical segment, out of range
   const events = updateTower(t, [a, b, c], 0.1, config, path);
   assert.strictEqual(events.length, 2);
 });
@@ -660,7 +658,7 @@ test('windmill hits all enemies in range', () => {
 test('web deals dps * dt to all in range without cooldown', () => {
   _resetIds();
   const path = buildPath(config.PATH_WAYPOINTS);
-  const t = createTower('web', 3, 1, config); // dps 2, range 1
+  const t = createTower('web', 3, 2, config); // dps 2, range 1, center on the path
   const a = createEnemy('aphid', config);
   a.distance = 4.0;
   const e1 = updateTower(t, [a], 0.5, config, path);
@@ -970,7 +968,6 @@ test('initial state', () => {
 test('placeTower deducts gold and rejects invalid placements', () => {
   const g = newGame();
   assert.strictEqual(g.placeTower('scarecrow', 0, 2).ok, false, 'on path');
-  assert.strictEqual(g.placeTower('windmill', 3, 3).ok, false, 'windmill costs 70 > remaining? no—100 gold ok');
   const r = g.placeTower('scarecrow', 3, 3);
   assert.strictEqual(r.ok, true);
   assert.strictEqual(g.gold, 50);
