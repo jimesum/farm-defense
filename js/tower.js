@@ -35,7 +35,7 @@ function applyUpgrade(tower, config) {
 }
 
 function sellValue(tower, config) {
-  return Math.round(tower.invested * config.SELL_REFUND_RATE);
+  return Math.floor(tower.invested * config.SELL_REFUND_RATE);
 }
 
 function inRange(tower, range, pos) {

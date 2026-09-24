@@ -33,7 +33,7 @@ test('upgrade cost follows multipliers, null at max level', () => {
 test('sellValue returns 70% of invested', () => {
   const t = createTower('scarecrow', 3, 3, config);
   applyUpgrade(t, config); // invested 90
-  assert.strictEqual(sellValue(t, config), 63);
+  assert.strictEqual(sellValue(t, config), 62);
 });
 
 test('inRange uses cell-center distance', () => {

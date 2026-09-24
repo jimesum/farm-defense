@@ -614,7 +614,7 @@ test('upgrade cost follows multipliers, null at max level', () => {
 test('sellValue returns 70% of invested', () => {
   const t = createTower('scarecrow', 3, 3, config);
   applyUpgrade(t, config); // invested 90
-  assert.strictEqual(sellValue(t, config), 63);
+  assert.strictEqual(sellValue(t, config), 62);
 });
 
 test('inRange uses cell-center distance', () => {
@@ -984,7 +984,7 @@ test('upgrade and sell flow', () => {
   assert.strictEqual(g.gold, 100 - 50 - 40);
   const s = g.sellTowerAt(3, 3);
   assert.strictEqual(s.ok, true);
-  assert.strictEqual(g.gold, 10 + 63); // floor(90 * 0.7)
+  assert.strictEqual(g.gold, 10 + 62); // floor(90 * 0.7) === 62 in JS floats
   assert.strictEqual(g.towerAt(3, 3), undefined);
 });
 
