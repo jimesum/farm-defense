@@ -1071,7 +1071,8 @@ test('grantRandomUpgrade upgrades a random tower or falls back to gold', () => {
   const r = g.grantRandomUpgrade();
   assert.strictEqual(r.applied, 'upgrade');
   assert.strictEqual(g.towerAt(3, 3).level, 2);
-  // 全满级时发金币
+  // 全满级时发金币。2 级升 3 级花费 60，先补足金币
+  g.gold = 100;
   g.upgradeTowerAt(3, 3);
   const goldBefore = g.gold;
   const r2 = g.grantRandomUpgrade();
