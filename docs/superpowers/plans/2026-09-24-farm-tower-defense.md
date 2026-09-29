@@ -1,23 +1,25 @@
 # 农场保卫战 Implementation Plan
 
+> **当前实现已改为 Cocos Creator 3.8.8。** 下面的任务记录的是最初那版原生 Canvas 搭架子的步骤，不要再按「无引擎、只改 game.js」来改工程。现行结构、预览目录和两份规则如何对齐，以设计文档的「技术架构」为准：`docs/superpowers/specs/2026-09-24-farm-tower-defense-design.md`。
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** 实现设计文档 `docs/superpowers/specs/2026-09-24-farm-tower-defense-design.md` 描述的微信小游戏单关塔防：农场老板摆设施守粮仓，10 波 + Boss，含激励视频广告。
 
-**Architecture:** 纯逻辑模块（config/path/enemy/tower/wave/main）不依赖 wx API，用 CommonJS 编写、Node 内置 test runner 做单元测试；wx 边界层（render/ui/ad/game.js）在微信开发者工具模拟器中人工验证。逻辑与渲染分离，游戏状态是纯数据。
+**Architecture:** 规则在 `js/`（CommonJS，Node 测试）和 `NewProject/assets/scripts/farm/`（ESM `.ts`）各有一份，必须对齐。Cocos 场景组件 `FarmStage` 把离屏 Canvas 贴进精灵并转发触摸。微信开发者工具打开的是 `NewProject/build/wechatgame`。
 
-**Tech Stack:** 微信小游戏（原生 Canvas，无引擎）、CommonJS 模块、Node `node:test`（逻辑层测试，无需安装任何依赖）。
+**Tech Stack:** Cocos Creator 3.8.8、微信小游戏构建（`separateEngine: false`）、CommonJS + ESM 双份规则、Node `node:test`（无需 npm 依赖）。
 
 ## Global Constraints
 
-- 平台：微信小游戏，`game.json` + `game.js` 入口，竖屏 `"deviceOrientation": "portrait"`
-- 模块系统：CommonJS（`require` / `module.exports`），禁止使用 ES Module 语法
-- 禁止引入任何 npm 依赖；测试只用 Node 内置 `node:test` 和 `node:assert`
-- 所有数值（塔、害虫、波次、经济、广告）只写在 `js/config.js`
-- 塔和害虫的视觉一律用 emoji（`ctx.fillText`），禁止引入图片素材
-- 出售返还率：总投入的 70%（`SELL_REFUND_RATE: 0.7`）
-- 广告：每局最多触发 1 次；加载失败静默跳过；广告位 ID 用占位符 `adunit-xxxxxxxxxxxxxxx`，上线前替换
-- git 仓库已初始化（master 分支），每个任务结束后按步骤提交
+下列约束适用于当初的 Canvas 任务记录。现行工程改规则时以设计文档为准，并同时改 `js/` 与 `NewProject/assets/scripts/farm/`。
+
+- 平台：微信小游戏，竖屏。预览目录是 `NewProject/build/wechatgame`，不要勾选分离引擎。
+- `js/` 使用 CommonJS。Cocos 脚本使用 ESM，`import` 以 `.ts` 结尾。
+- 禁止引入任何 npm 依赖；测试只用 Node 内置 `node:test` 和 `node:assert`，命令是 `node --test tests/*.test.js`
+- 数值写在 `js/config.js`，并同步到 `config.ts`
+- 广告位 ID 用占位符 `adunit-xxxxxxxxxxxxxxx`，上线前换成流量主里的真实广告位
+- git 仓库已初始化（master 分支）
 
 ---
 
