@@ -22,6 +22,14 @@ test('tower levels grow in power', () => {
   const s = config.TOWERS.scarecrow.levels;
   assert.ok(s[1].damage > s[0].damage);
   assert.ok(s[2].damage > s[1].damage);
+  assert.ok(s[1].fireRate > s[0].fireRate);
+  assert.ok(s[2].fireRate > s[1].fireRate);
+  const wind = config.TOWERS.windmill.levels;
+  assert.ok(wind[1].fireRate > wind[0].fireRate);
+  assert.ok(wind[2].fireRate > wind[1].fireRate);
+  const web = config.TOWERS.web.levels;
+  assert.ok(web[1].fireRate > web[0].fireRate);
+  assert.ok(web[2].fireRate > web[1].fireRate);
   const st = config.TOWERS.sticky.levels;
   assert.ok(st[1].slow > st[0].slow);
   assert.ok(st[2].slow > st[1].slow);
@@ -54,7 +62,7 @@ test('economy and ad constants', () => {
   assert.strictEqual(config.INITIAL_GOLD, 100);
   assert.strictEqual(config.INITIAL_HP, 20);
   assert.strictEqual(config.SELL_REFUND_RATE, 0.7);
-  assert.strictEqual(config.AD.HP_THRESHOLD, 0.3);
+  assert.strictEqual(config.AD.HP_PROMPT, 15);
   assert.strictEqual(config.AD.GOLD_FALLBACK, 80);
   assert.strictEqual(config.UPGRADE_COST_MULTIPLIERS.length, 2);
 });

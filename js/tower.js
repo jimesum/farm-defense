@@ -41,12 +41,19 @@ function sellValue(tower, config) {
 function inRange(tower, range, pos) {
   const dx = pos.x - (tower.col + 0.5);
   const dy = pos.y - (tower.row + 0.5);
-  return Math.hypot(dx, dy) <= range;
+  // 配置里的 range 是格子数。加半格，贴路的 1 格设施才能打到整段相邻土路。
+  return Math.hypot(dx, dy) <= range + 0.5;
 }
 
-function updateTower(tower, enemies, dt, config, path) {
+function attackPower(tower, moment) {
+  if (!moment || moment.kind !== 'crit' || tower.type === 'sticky') return 1;
+  return 2;
+}
+
+function updateTower(tower, enemies, dt, config, path, moment) {
   const s = stats(tower, config);
   const events = [];
+  const power = attackPower(tower, moment);
   if (s.slow) return events; // 减速塔不出伤，由 slowFactorAt 统一处理
 
   const targets = enemies.filter(e =>
@@ -55,7 +62,7 @@ function updateTower(tower, enemies, dt, config, path) {
 
   if (s.dps) {
     for (const e of targets) {
-      events.push({ enemyId: e.id, amount: s.dps * dt });
+      events.push({ enemyId: e.id, amount: s.dps * dt * power });
     }
     return events;
   }
@@ -66,21 +73,22 @@ function updateTower(tower, enemies, dt, config, path) {
 
   if (tower.type === 'windmill') {
     for (const e of targets) {
-      events.push({ enemyId: e.id, amount: s.damage });
+      events.push({ enemyId: e.id, amount: s.damage * power });
     }
   } else {
     targets.sort((a, b) => b.distance - a.distance);
-    events.push({ enemyId: targets[0].id, amount: s.damage });
+    events.push({ enemyId: targets[0].id, amount: s.damage * power });
   }
   return events;
 }
 
-function slowFactorAt(pos, towers, config) {
+function slowFactorAt(pos, towers, config, moment) {
+  const boost = moment && moment.kind === 'slow' ? 2 : 1;
   let max = 0;
   for (const t of towers) {
     const s = stats(t, config);
     if (s.slow && inRange(t, s.range, pos)) {
-      max = Math.max(max, s.slow);
+      max = Math.max(max, Math.min(0.9, s.slow * boost));
     }
   }
   return max;

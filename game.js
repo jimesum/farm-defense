@@ -3,6 +3,7 @@ const config = require('./js/config');
 const Game = require('./js/main');
 const render = require('./js/render');
 const ui = require('./js/ui');
+const title = require('./js/title');
 const createAdController = require('./js/ad');
 
 const canvas = wx.createCanvas();
@@ -14,9 +15,12 @@ canvas.width = info.windowWidth * info.pixelRatio;
 canvas.height = info.windowHeight * info.pixelRatio;
 ctx.scale(info.pixelRatio, info.pixelRatio);
 const cssCanvas = { width: info.windowWidth, height: info.windowHeight };
-const layout = render.computeLayout(cssCanvas, config);
+const safeTop = (info.safeArea && info.safeArea.top) || info.statusBarHeight || 0;
+const layout = render.computeLayout(cssCanvas, config, safeTop);
 
 let game = new Game(config);
+let started = false;
+let startButton = null;
 const uiState = ui.createUIState();
 const ad = createAdController(wx, config);
 ad.load();
@@ -27,19 +31,23 @@ const hooks = {
     uiState.selected = null;
     uiState.placementMode = false;
     uiState.adModal = false;
+    uiState.drag = null;
+    uiState.arm = null;
+  },
+  onHome() {
+    started = false;
+    hooks.onRestart();
   },
   onAdWatch() {
     uiState.adModal = false;
     game.consumeAdPrompt();
     ad.show({
       onReward() {
-        const roll = game.rollAdReward();
-        if (roll === 'upgrade' && game.towers.length > 0) {
-          const r = game.grantRandomUpgrade();
-          ui.showToast(uiState, r.applied === 'gold' ? `援助：💰${config.AD.GOLD_FALLBACK}` : `援助：${config.TOWERS[r.tower.type].name}升级！`);
-        } else {
-          uiState.placementMode = true;
+        const moment = game.tryMoment();
+        if (moment) {
+          ui.showToast(uiState, moment.kind === 'crit' ? '非常时刻：全线暴击' : '非常时刻：动作迟缓');
         }
+        uiState.placementMode = true;
       },
       onSkip() {
         ui.showToast(uiState, '广告未播放完成');
@@ -54,7 +62,21 @@ const hooks = {
 
 wx.onTouchStart(e => {
   const t = e.touches[0];
-  ui.handleTouch(t.clientX, t.clientY, game, layout, uiState, config, hooks);
+  if (!started) {
+    if (title.hitStart(t.clientX, t.clientY, startButton)) started = true;
+    return;
+  }
+  ui.handleTouchStart(t.clientX, t.clientY, game, layout, uiState, config, hooks);
+});
+wx.onTouchMove(e => {
+  if (!started) return;
+  const t = e.touches[0];
+  ui.handleTouchMove(t.clientX, t.clientY, game, layout, uiState);
+});
+wx.onTouchEnd(e => {
+  if (!started) return;
+  const t = e.changedTouches[0];
+  ui.handleTouchEnd(t.clientX, t.clientY, game, layout, uiState);
 });
 
 let last = Date.now();
@@ -62,14 +84,16 @@ function loop() {
   const now = Date.now();
   const dt = Math.min((now - last) / 1000, 0.05);
   last = now;
-  if (!uiState.adModal) {
+  if (started && !uiState.adModal) {
     game.update(dt);
   }
-  // 广告触发：血量告急或 Boss 波前
-  if (game.adPrompt && !uiState.adModal) {
+  if (started && (game.state === 'won' || game.state === 'lost')) {
+    uiState.adModal = false;
+  } else if (started && game.adPrompt && !uiState.adModal) {
     uiState.adModal = true;
   }
-  render.draw(ctx, game, layout, uiState);
+  if (started) render.draw(ctx, game, layout, uiState);
+  else startButton = title.drawTitle(ctx, cssCanvas.width, cssCanvas.height, safeTop);
   requestAnimationFrame(loop);
 }
 requestAnimationFrame(loop);

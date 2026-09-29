@@ -1,2 +1,6 @@
 .worktrees/
-
+project.private.config.json
+NewProject/library/
+NewProject/temp/
+NewProject/build/
+NewProject/profiles/

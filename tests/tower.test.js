@@ -36,6 +36,15 @@ test('sellValue returns 70% of invested', () => {
   assert.strictEqual(sellValue(t, config), 62);
 });
 
+test('range 1 reaches the adjacent path, not only the exact center', () => {
+  const path = buildPath(config.PATH_WAYPOINTS);
+  const t = createTower('sticky', 3, 1, config);
+  const e = createEnemy('aphid', config);
+  e.distance = 3.6; // (3.1, 2.5), beside the tower but off the exact center
+  const s = stats(t, config);
+  assert.strictEqual(inRange(t, s.range, require('../js/path').positionAt(path, e.distance)), true);
+});
+
 test('inRange uses cell-center distance', () => {
   const t = createTower('scarecrow', 3, 3, config);
   assert.strictEqual(inRange(t, 2, { x: 5.5, y: 3.5 }), true);
@@ -84,6 +93,30 @@ test('web deals dps * dt to all in range without cooldown', () => {
   const e2 = updateTower(t, [a], 0.5, config, path);
   assert.strictEqual(e1[0].amount, 1);
   assert.strictEqual(e2.length, 1, 'no cooldown for dps towers');
+});
+
+test('crit moment doubles attack damage and web dps', () => {
+  _resetIds();
+  const path = buildPath(config.PATH_WAYPOINTS);
+  const scarecrow = createTower('scarecrow', 3, 2, config);
+  const far = createEnemy('aphid', config);
+  far.distance = 5.0;
+  const hit = updateTower(scarecrow, [far], 0.1, config, path, { kind: 'crit' });
+  assert.strictEqual(hit[0].amount, 10);
+  const web = createTower('web', 3, 2, config);
+  const a = createEnemy('aphid', config);
+  a.distance = 4.0;
+  const dps = updateTower(web, [a], 0.5, config, path, { kind: 'crit' });
+  assert.strictEqual(dps[0].amount, 2);
+});
+
+test('slow moment doubles sticky slow and caps at 0.9', () => {
+  const t1 = createTower('sticky', 3, 1, config);
+  const t2 = createTower('sticky', 3, 3, config);
+  t2.level = 3;
+  const pos = { x: 3.5, y: 2.5 };
+  assert.strictEqual(slowFactorAt(pos, [t1], config, { kind: 'slow' }), 0.6);
+  assert.strictEqual(slowFactorAt(pos, [t2], config, { kind: 'slow' }), 0.9);
 });
 
 test('slowFactorAt takes max slow in range', () => {
